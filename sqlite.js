@@ -1,4 +1,4 @@
-const sqlite3 = require('sqlite3').verbose()
+const sqlite3 = require('@journeyapps/sqlcipher').verbose()
 
 let db = new sqlite3.Database('./test.db')
 
@@ -6,6 +6,9 @@ let db = new sqlite3.Database('./test.db')
 // this is as opposed to db.parallelize() which will run the functions in parallel and no particular order of// execution is followed
 
 db.serialize(() => {
+    db.run('PRAGMA cipher_compatibility = 3')
+    db.run('PRAGMA key = "mysecret"')
+
     db.run(
         `CREATE TABLE IF NOT EXISTS peoples(
       id INTEGER PRIMARY KEY, 
@@ -15,6 +18,13 @@ db.serialize(() => {
       phone TEXT NOT NULL UNIQUE)`,
         console.log('peoples table created'),
     )
+
+    // to  chain multiple values one could do something like:
+    // let stmt = db.prepare('INSERT INTO lorem VALUES (?)')
+    // for (let i = 0; i < 10; i++) {
+    //  stmt.run("Ipsum" + 1)
+    //  }
+    //  stmt.finalize()
 
     db.run(
         `INSERT OR IGNORE INTO peoples VALUES
@@ -44,7 +54,7 @@ db.serialize(() => {
         })
     })
 
-    db.run(`DROP TABLE IF EXISTS peoples`)
+    //db.run(`DROP TABLE IF EXISTS peoples`)
 })
 
 db.close()
